@@ -65,7 +65,7 @@ export default function ProductsPage() {
   const handleSubmit = async (values) => {
     const url = editId ? `${LOCAL_API_URL}?id=${editId}` : LOCAL_API_URL;
     const method = editId ? "PUT" : "POST";
-    const payload = editId ? { ...values, id: editId } : values; // 👈 FIX
+    const payload = editId ? { ...values, id: editId } : values;
 
     try {
       const res = await fetch(url, {
@@ -90,7 +90,7 @@ export default function ProductsPage() {
   };
 
   const handleDelete = async (record) => {
-    const payload = { ...record, id: record.id, stock: 0 }; // 👈 FIX
+    const payload = { ...record, id: record.id, stock: 0 };
 
     try {
       const res = await fetch(`${LOCAL_API_URL}?id=${record.id}`, {
@@ -110,15 +110,26 @@ export default function ProductsPage() {
     }
   };
 
+  // 🔥 SEARCH & FILTER FINAL VERSION
   const filtered = useMemo(() => {
     let list = products;
-    if (selectedCategory) list = list.filter((p) => p.category === selectedCategory);
-    if (searchText) {
-      const s = searchText.toLowerCase();
+
+    if (selectedCategory) {
+      list = list.filter((p) => p.category === selectedCategory);
+    }
+
+    if (searchText.trim()) {
+      const s = searchText.toLowerCase().trim();
       list = list.filter(
-        (p) => p.name.toLowerCase().includes(s) || p.category.toLowerCase().includes(s)
+        (p) =>
+          (p.name && p.name.toLowerCase().includes(s)) ||
+          (p.category && p.category.toLowerCase().includes(s)) ||
+          (p.description && p.description.toLowerCase().includes(s)) ||
+          p.price?.toString().includes(s) ||
+          p.stock?.toString().includes(s)
       );
     }
+
     return list;
   }, [products, selectedCategory, searchText]);
 
@@ -198,10 +209,10 @@ export default function ProductsPage() {
 
         <Space>
           <Input
-            placeholder="Search Name / Category"
+            placeholder="Search Name / Category / Description / Price / Stock"
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
-            style={{ width: 200 }}
+            style={{ width: 240 }}
             allowClear
           />
           <Select
